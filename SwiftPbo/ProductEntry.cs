@@ -1,21 +1,26 @@
+#region
+
 using System;
 using System.Collections.Generic;
+
+#endregion
 
 namespace SwiftPbo
 {
     [Serializable]
     public class ProductEntry
     {
+        private List<string> _addtional = new List<string>();
         private string _name;
         private string _prefix;
         private string _productVersion;
-        private List<string> _addtional = new List<string>();
 
         public ProductEntry()
         {
             _name = _prefix = _productVersion = "";
             Addtional = new List<string>();
         }
+
         public ProductEntry(string name, string prefix, string productVersion, List<string> addList = null)
         {
             Name = name;
@@ -27,26 +32,26 @@ namespace SwiftPbo
 
         public string Name
         {
-            get { return _name; }
-            set { _name = value; }
+            get => _name;
+            set => _name = value;
         }
 
         public string Prefix
         {
-            get { return _prefix; }
-            set { _prefix = value; }
+            get => _prefix;
+            set => _prefix = value;
         }
 
         public string ProductVersion
         {
-            get { return _productVersion; }
-            set { _productVersion = value; }
+            get => _productVersion;
+            set => _productVersion = value;
         }
 
         public List<string> Addtional
         {
-            get { return _addtional; }
-            set { _addtional = value; }
+            get => _addtional;
+            set => _addtional = value;
         }
     }
 }

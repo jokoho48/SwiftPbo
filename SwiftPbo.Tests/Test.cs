@@ -1,20 +1,21 @@
-﻿using System;
+﻿#region
+
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using NUnit.Framework;
+
+#endregion
 
 namespace SwiftPbo.Tests
 {
     [TestFixture]
-    class PboTest
+    internal class PboTest
     {
-        private byte[] _checksum;
         [SetUp]
         protected void SetUp()
         {
-
             const string Sha = "2DEA9A198FDCF0FE70473C079F1036B6E16FBFCE";
             _checksum = Enumerable.Range(0, Sha.Length)
                 .Where(x => x % 2 == 0)
@@ -22,29 +23,42 @@ namespace SwiftPbo.Tests
                 .ToArray();
         }
 
+        private byte[] _checksum;
+
         [Test]
-        public void OpenArchiveTest()
+        public void CloneArchiveTest()
         {
-            var pboArchive = new PboArchive("testdata/cba_common.pbo");
-            Assert.That(pboArchive.Files.Count == 113);
+            PboArchive pboArchive = new PboArchive("testdata/cba_common.pbo");
+            Dictionary<FileEntry, string> files = new Dictionary<FileEntry, string>();
 
+            foreach (FileEntry entry in pboArchive.Files)
+            {
+                FileInfo info = new FileInfo(Path.Combine("testdata\\cba_common", entry.FileName));
+                Assert.That(info.Exists);
+                files.Add(entry, info.FullName);
+            }
 
+            PboArchive.Clone("clone_common.pbo", pboArchive.ProductEntry, files, pboArchive.Checksum);
 
-            Assert.That(pboArchive.Checksum.SequenceEqual(_checksum),"Checksum dosen't match");
+            PboArchive cloneArchive = new PboArchive("clone_common.pbo");
 
-            Assert.That(pboArchive.ProductEntry.Name == "prefix");
+            Assert.That(pboArchive.Checksum.SequenceEqual(cloneArchive.Checksum), "Checksum dosen't match");
 
-            Assert.That(pboArchive.ProductEntry.Prefix == @"x\cba\addons\common");
+            Assert.That(pboArchive.Files.Count == cloneArchive.Files.Count, "Checksum dosen't match");
 
-            Assert.That(pboArchive.ProductEntry.Addtional.Count == 3);
+            Assert.That(pboArchive.ProductEntry.Name == cloneArchive.ProductEntry.Name);
+
+            Assert.That(pboArchive.ProductEntry.Prefix == cloneArchive.ProductEntry.Prefix);
+
+            Assert.That(pboArchive.ProductEntry.Addtional.Count == cloneArchive.ProductEntry.Addtional.Count);
         }
 
         [Test]
         public void CreateArchiveTest()
         {
-            Assert.That(PboArchive.Create("testdata\\cba_common","cba_common.pbo"));
+            Assert.That(PboArchive.Create("testdata\\cba_common", "cba_common.pbo"));
 
-            var pbo = new PboArchive("cba_common.pbo");
+            PboArchive pbo = new PboArchive("cba_common.pbo");
 
             Assert.That(pbo.Files.Count == 113);
 
@@ -59,35 +73,18 @@ namespace SwiftPbo.Tests
         }
 
         [Test]
-        public void CloneArchiveTest()
+        public void OpenArchiveTest()
         {
-            var pboArchive = new PboArchive("testdata/cba_common.pbo");
-            var files = new Dictionary<FileEntry, string>();
+            PboArchive pboArchive = new PboArchive("testdata/cba_common.pbo");
+            Assert.That(pboArchive.Files.Count == 113);
 
-            foreach (var entry in pboArchive.Files)
-            {
-                var info = new FileInfo(Path.Combine("testdata\\cba_common",entry.FileName));
-                Assert.That(info.Exists);
-                files.Add(entry,info.FullName);
-            }
+            Assert.That(pboArchive.Checksum.SequenceEqual(_checksum), "Checksum dosen't match");
 
+            Assert.That(pboArchive.ProductEntry.Name == "prefix");
 
+            Assert.That(pboArchive.ProductEntry.Prefix == @"x\cba\addons\common");
 
-            PboArchive.Clone("clone_common.pbo", pboArchive.ProductEntry, files, pboArchive.Checksum);
-
-            var cloneArchive = new PboArchive("clone_common.pbo");
-
-            Assert.That(pboArchive.Checksum.SequenceEqual(cloneArchive.Checksum), "Checksum dosen't match");
-
-            Assert.That(pboArchive.Files.Count == cloneArchive.Files.Count, "Checksum dosen't match");
-
-            Assert.That(pboArchive.ProductEntry.Name == cloneArchive.ProductEntry.Name);
-
-            Assert.That(pboArchive.ProductEntry.Prefix == cloneArchive.ProductEntry.Prefix);
-
-            Assert.That(pboArchive.ProductEntry.Addtional.Count == cloneArchive.ProductEntry.Addtional.Count);
-
-
+            Assert.That(pboArchive.ProductEntry.Addtional.Count == 3);
         }
     }
 }
